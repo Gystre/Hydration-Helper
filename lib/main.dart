@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hydration_helper/q_pages.dart';
 import 'package:hydration_helper/q_options.dart';
+import 'package:hydration_helper/question_builder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -148,6 +149,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void setOptions(QOptions newOptions) {
+    // save all the settings
+
     setState(() {
       options = newOptions;
     });
@@ -190,30 +193,50 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
               ),
-              Container(
-                margin: const EdgeInsets.only(
-                    top: 128, left: 16, right: 16), // Margin of 128px from top
-                height: 128,
-                child: const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Welcome to Hydration Helper!',
-                        style: TextStyle(
-                            fontSize: 29, fontWeight: FontWeight.bold)),
-                    Text(
-                        "We're going to ask you a few questions to help get you started.",
-                        style: TextStyle(fontSize: 14)),
-                  ],
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 128,
+                  left: 16,
+                  right: 16,
                 ),
-              ),
-              // this is where the content goes
-              Container(
-                width: 326,
-                height: 64,
-                child: ElevatedButton(
-                  onPressed: () {},
-                  child: const Text("Start"),
-                ),
+                child:
+                    // render either the welcome text or the questions
+                    options.currentPage.index == QPages.welcome.index
+                        ? Column(
+                            children: [
+                              const SizedBox(
+                                height: 128,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Welcome to Hydration Helper!',
+                                        style: TextStyle(
+                                            fontSize: 29,
+                                            fontWeight: FontWeight.bold)),
+                                    Text(
+                                        "We're going to ask you a few questions to help get you started.",
+                                        style: TextStyle(fontSize: 14)),
+                                  ],
+                                ),
+                              ),
+                              // this is where the content goes
+                              SizedBox(
+                                width: 326,
+                                height: 64,
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    options.currentPage = QPages.sex;
+                                    setOptions(options);
+                                  },
+                                  child: const Text("Start"),
+                                ),
+                              ),
+                            ],
+                          )
+                        : QuestionBuilder(
+                            options: options,
+                            setOptions: setOptions,
+                          ),
               ),
             ],
           ),
