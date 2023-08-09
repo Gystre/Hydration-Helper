@@ -25,7 +25,27 @@ class GlobalData {
   FluidUnitsPref fluidUnitsPref = FluidUnitsPref.flOunces;
 
   // recommended amount of water calculated via some math
+  // default is in fluid ounces
   int recWater = 0;
+
+  get recWaterMl {
+    int mililiters = (recWater * 29.5735).round();
+    int mililitersRounded = (mililiters / 100).floor() * 100;
+    return mililitersRounded;
+  }
+
+  void reset() {
+    sex = Sex.unknown;
+    healthComplications = false;
+    weightUnitsPref = WeightUnitsPref.pounds;
+    weight = 0;
+    activityLevel = ActivityLevel.unknown;
+    climate = Climate.unknown;
+    currentPage = QPages.welcome;
+    fluidUnitsPref = FluidUnitsPref.flOunces;
+    recWater = 0;
+    initialized = true;
+  }
 
   bool initialized = false;
 

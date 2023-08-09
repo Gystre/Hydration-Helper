@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hydration_helper/global_data.dart';
+import 'package:hydration_helper/icon_text_box.dart';
+import 'package:hydration_helper/icon_text_button.dart';
 import 'package:hydration_helper/q_pages.dart';
 import 'package:hydration_helper/question_template.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class QuestionBuilder extends StatefulWidget {
   final GlobalData options;
@@ -13,67 +16,6 @@ class QuestionBuilder extends StatefulWidget {
   State<QuestionBuilder> createState() => _QuestionBuilderState();
 }
 
-class IconTextButton extends StatelessWidget {
-  final IconData icon;
-  final bool? image;
-  final String text;
-  final String? subtext;
-  final Function() onPressed;
-  const IconTextButton({
-    super.key,
-    required this.icon,
-    required this.text,
-    required this.onPressed,
-    this.subtext,
-    this.image,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return FilledButton(
-      onPressed: onPressed,
-      style: ButtonStyle(
-        backgroundColor: MaterialStateProperty.all(Colors.grey[200]),
-        padding: MaterialStateProperty.all(
-          const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-        ),
-      ),
-      child: Row(
-        children: [
-          image != null && image!
-              ? Image.asset("assets/astolfo.png", width: 56, height: 56)
-              : Icon(icon, size: 56, color: Colors.black),
-          const SizedBox(
-            width: 8,
-          ),
-          Flexible(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  text,
-                  style: Theme.of(context).textTheme.headlineMedium,
-                  softWrap: true,
-                  overflow: TextOverflow.visible,
-                ),
-                if (subtext != null)
-                  Text(
-                    subtext!,
-                    style: Theme.of(context).textTheme.labelLarge,
-                    softWrap:
-                        true, // Allow subtext to wrap within this Text widget
-                    overflow: TextOverflow
-                        .visible, // Subtext can overflow its container
-                  ),
-              ],
-            ),
-          )
-        ],
-      ),
-    );
-  }
-}
-
 class _QuestionBuilderState extends State<QuestionBuilder> {
   String weight = "";
 
@@ -81,6 +23,47 @@ class _QuestionBuilderState extends State<QuestionBuilder> {
   void _nextPage() {
     for (var page in QPages.values) {
       if (page.index == widget.options.currentPage.index + 1) {
+        // if done calculate water
+        if (page.index == QPages.done.index) {
+          var weight = widget.options.weight;
+          if (widget.options.weightUnitsPref == WeightUnitsPref.kilograms) {
+            weight = (weight * 2.20462).round();
+          }
+
+          // how many ounces of water we'll need to drink
+          var ounces = weight * 0.5;
+          ounces *= widget.options.sex == Sex.male ? 1.1 : 1.0;
+
+          switch (widget.options.activityLevel) {
+            case ActivityLevel.moderatlyActive:
+              ounces *= 1.1; // 10% more
+              break;
+            case ActivityLevel.veryActive:
+              ounces *= 1.2; // 20% more
+              break;
+            default:
+              break;
+          }
+
+          switch (widget.options.climate) {
+            case Climate.hot:
+              ounces *= 1.1; // 10% more
+              break;
+            case Climate.warm:
+              ounces *= 1.05; // 5% more
+              break;
+            default:
+              break;
+          }
+
+          if (widget.options.healthComplications) {
+            ounces *= 1.1; // 10% more
+          }
+
+          int ouncesRounded = ounces.round();
+          widget.options.recWater = ouncesRounded;
+        }
+
         widget.options.currentPage = page;
         widget.setOptions(widget.options);
         return;
@@ -165,7 +148,7 @@ class _QuestionBuilderState extends State<QuestionBuilder> {
                 ),
               ),
               onPressed: () {
-                widget.options.healthComplications = true;
+                widget.options.healthComplications = false;
                 widget.setOptions(widget.options);
                 _nextPage();
               },
@@ -178,7 +161,6 @@ class _QuestionBuilderState extends State<QuestionBuilder> {
           question: "What is your current weight?",
           children: [
             Row(
-              // center
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 FilledButton(
@@ -236,36 +218,36 @@ class _QuestionBuilderState extends State<QuestionBuilder> {
                   height: 16,
                 ),
                 FilledButton(
-                    onPressed: () {
-                      int? value = int.tryParse(weight);
+                  onPressed: () {
+                    int? value = int.tryParse(weight);
 
-                      // show error msg
-                      if (value == null) {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: const Text('Error'),
-                              content:
-                                  const Text("Weight is not a valid number"),
-                              actions: <Widget>[
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: const Text('Ok'),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      } else {
-                        widget.options.weight = value;
-                        widget.setOptions(widget.options);
-                        _nextPage();
-                      }
-                    },
-                    child: const Text("Submit")),
+                    // show error msg
+                    if (value == null) {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text('Error'),
+                            content: const Text("Weight is not a valid number"),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text('Ok'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    } else {
+                      widget.options.weight = value;
+                      widget.setOptions(widget.options);
+                      _nextPage();
+                    }
+                  },
+                  child: const Text("Submit"),
+                ),
               ],
             ),
           ],
@@ -329,7 +311,7 @@ class _QuestionBuilderState extends State<QuestionBuilder> {
               height: 8,
             ),
             IconTextButton(
-              icon: Icons.directions_run,
+              icon: Icons.directions_run, // not actually used
               image: true,
               text: "Warm",
               onPressed: () {
@@ -357,7 +339,167 @@ class _QuestionBuilderState extends State<QuestionBuilder> {
           question: "You should be drinking this much water per day...",
           smallText: true,
           children: [
-            const Text("uhh"),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                FilledButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: widget.options.fluidUnitsPref.index ==
+                            FluidUnitsPref.flOunces.index
+                        ? Theme.of(context).primaryColor
+                        : Colors.grey,
+                  ),
+                  onPressed: () {
+                    widget.options.fluidUnitsPref = FluidUnitsPref.flOunces;
+                    widget.setOptions(widget.options);
+                  },
+                  child: const Text("Fluid Oz."),
+                ),
+                const SizedBox(
+                  width: 16,
+                ),
+                FilledButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: widget.options.fluidUnitsPref.index ==
+                            FluidUnitsPref.mililiters.index
+                        ? Theme.of(context).primaryColor
+                        : Colors.grey,
+                  ),
+                  onPressed: () {
+                    widget.options.fluidUnitsPref = FluidUnitsPref.mililiters;
+                    widget.setOptions(widget.options);
+                  },
+                  child: const Text("Mililiters"),
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: 16,
+            ),
+            Center(
+              child: Text(
+                widget.options.fluidUnitsPref == FluidUnitsPref.flOunces
+                    ? "${widget.options.recWater}"
+                    : "${widget.options.recWaterMl}",
+                style: Theme.of(context).textTheme.displayLarge,
+              ),
+            ),
+            const SizedBox(
+              height: 16,
+            ),
+            if (widget.options.activityLevel == ActivityLevel.veryActive)
+              const Column(
+                children: [
+                  IconTextBox(
+                    icon: Icons.fitness_center,
+                    text: "Very Active",
+                    subtext: "+20% water intake",
+                  ),
+                  SizedBox(
+                    height: 8,
+                  ),
+                ],
+              ),
+            if (widget.options.activityLevel == ActivityLevel.moderatlyActive)
+              const Column(
+                children: [
+                  IconTextBox(
+                    icon: Icons.directions_run,
+                    text: "Moderately Active",
+                    subtext: "+10% water intake",
+                  ),
+                  SizedBox(
+                    height: 8,
+                  ),
+                ],
+              ),
+            if (widget.options.climate == Climate.hot)
+              const Column(
+                children: [
+                  IconTextBox(
+                    icon: Icons.local_fire_department,
+                    text: "Hot or humid",
+                    subtext: "+10% water intake",
+                  ),
+                  SizedBox(
+                    height: 8,
+                  ),
+                ],
+              ),
+            if (widget.options.climate == Climate.warm)
+              const Column(
+                children: [
+                  IconTextBox(
+                    icon: Icons.directions_run, // not actually used
+                    image: true, text: "Warm",
+                    subtext: "+5% water intake",
+                  ),
+                  SizedBox(
+                    height: 8,
+                  ),
+                ],
+              ),
+            if (widget.options.healthComplications)
+              const Column(
+                children: [
+                  IconTextBox(
+                    icon: Icons.local_hospital,
+                    text: "Health Complications",
+                    subtext: "+10% water intake",
+                  ),
+                  SizedBox(
+                    height: 8,
+                  ),
+                ],
+              ),
+            const SizedBox(
+              height: 8,
+            ),
+            Center(
+              child: Column(
+                children: [
+                  // TODO: was going to add a whole streak system with the water and push notifications but will have to abandon in interest of time
+                  // FilledButton(
+                  //   style: ButtonStyle(
+                  //     minimumSize: MaterialStateProperty.all<Size>(
+                  //       const Size(324.0, 50.0),
+                  //     ),
+                  //     textStyle: MaterialStateProperty.all<TextStyle>(
+                  //       const TextStyle(fontSize: 16),
+                  //     ),
+                  //   ),
+                  //   onPressed: () {
+                  //     // navigate to the water page
+                  //   },
+                  //   child: const Text("Continue"),
+                  // ),
+                  // const SizedBox(
+                  //   height: 8,
+                  // ),
+                  FilledButton(
+                    style: ButtonStyle(
+                      backgroundColor:
+                          MaterialStateProperty.all<Color>(Colors.grey),
+                      minimumSize: MaterialStateProperty.all<Size>(
+                        const Size(200.0, 40.0),
+                      ),
+                      textStyle: MaterialStateProperty.all<TextStyle>(
+                        const TextStyle(fontSize: 14),
+                      ),
+                    ),
+                    onPressed: () async {
+                      await SharedPreferences.getInstance().then((prefs) {
+                        prefs.clear();
+                      });
+
+                      widget.options.reset();
+                      widget.setOptions(widget.options);
+                    },
+                    child: const Text("Redo questions"),
+                  ),
+                ],
+              ),
+            )
           ],
         );
       default:

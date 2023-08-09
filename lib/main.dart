@@ -64,6 +64,7 @@ class _MyHomePageState extends State<MyHomePage> {
       prefs.setInt("weight", 0);
       prefs.setInt("activity_level", ActivityLevel.unknown.index);
       prefs.setInt("climate", Climate.unknown.index);
+      prefs.setInt("rec_water", 0);
       return;
     }
 
@@ -94,11 +95,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
     bool? healthComplications = prefs.getBool("health_complications");
     if (healthComplications != null) {
-      setState(
-        () {
-          options.healthComplications = healthComplications;
-        },
-      );
+      setState(() {
+        options.healthComplications = healthComplications;
+      });
     } else {
       print("healthComplications is null");
     }
@@ -139,10 +138,17 @@ class _MyHomePageState extends State<MyHomePage> {
       print("climate is null");
     }
 
+    int? recWater = prefs.getInt("rec_water");
+    if (recWater != null) {
+      setState(() {
+        options.recWater = recWater;
+      });
+    } else {
+      print("recWater is null");
+    }
+
     // settings initialized
-    setState(
-      () => options.initialized = true,
-    );
+    setState(() => options.initialized = true);
   }
 
   Future<void> saveSharedPrefs() async {
@@ -155,7 +161,7 @@ class _MyHomePageState extends State<MyHomePage> {
     prefs.setInt("weight", options.weight);
     prefs.setInt("activity_level", options.activityLevel.index);
     prefs.setInt("climate", options.climate.index);
-    print("prefs saved");
+    prefs.setInt("rec_water", options.recWater);
   }
 
   void setOptions(GlobalData newOptions) {
@@ -178,15 +184,9 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     return Scaffold(
-      // appBar: AppBar(
-      //   backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      //   title: Text(widget.title),
-      // ),
-      // F: make column layout with 3 parts: progress bar, question, and options
-      // make the progress bar invivisible on the welcome page
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.only(left: 16, right: 16),
+      body: Padding(
+        padding: const EdgeInsets.only(left: 16, right: 16),
+        child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -216,18 +216,19 @@ class _MyHomePageState extends State<MyHomePage> {
                     options.currentPage.index == QPages.welcome.index
                         ? Column(
                             children: [
-                              const SizedBox(
-                                height: 128,
+                              SizedBox(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text('Welcome to Hydration Helper!',
-                                        style: TextStyle(
-                                            fontSize: 29,
-                                            fontWeight: FontWeight.bold)),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .displaySmall),
                                     Text(
-                                        "We're going to ask you a few questions to help get you started.",
-                                        style: TextStyle(fontSize: 14)),
+                                      "We're going to ask you a few questions to help get you started.",
+                                      style:
+                                          Theme.of(context).textTheme.bodyLarge,
+                                    ),
                                   ],
                                 ),
                               ),
@@ -237,6 +238,12 @@ class _MyHomePageState extends State<MyHomePage> {
                                 width: 326,
                                 height: 64,
                                 child: FilledButton(
+                                  style: ButtonStyle(
+                                    textStyle:
+                                        MaterialStateProperty.all<TextStyle>(
+                                      const TextStyle(fontSize: 16),
+                                    ),
+                                  ),
                                   onPressed: () {
                                     options.currentPage = QPages.sex;
                                     setOptions(options);
