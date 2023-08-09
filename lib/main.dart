@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hydration_helper/q_pages.dart';
-import 'package:hydration_helper/q_options.dart';
+import 'package:hydration_helper/global_data.dart';
 import 'package:hydration_helper/question_builder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -23,6 +23,9 @@ class MyApp extends StatelessWidget {
           displaySmall: TextStyle(
             fontWeight: FontWeight.bold,
           ),
+          headlineSmall: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
       home: const MyHomePage(title: "Hydration Helper"),
@@ -40,7 +43,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  QOptions options = QOptions();
+  GlobalData options = GlobalData();
 
   @override
   void initState() {
@@ -57,12 +60,10 @@ class _MyHomePageState extends State<MyHomePage> {
       prefs.setInt("questionnaire_page", QPages.welcome.index);
       prefs.setInt("sex", Sex.unknown.index);
       prefs.setBool("health_complications", false);
-      prefs.setInt(
-          "weight_units_preference", WeightUnitsPreference.unknown.index);
-      prefs.setInt("weight", Weight.unknown.index);
+      prefs.setInt("weight_units_preference", WeightUnitsPref.pounds.index);
+      prefs.setInt("weight", 0);
       prefs.setInt("activity_level", ActivityLevel.unknown.index);
       prefs.setInt("climate", Climate.unknown.index);
-      print("Created prefs");
       return;
     }
 
@@ -102,47 +103,38 @@ class _MyHomePageState extends State<MyHomePage> {
       print("healthComplications is null");
     }
 
-    int? weightUnitsPreference = prefs.getInt("weight_units_preference");
-    if (weightUnitsPreference != null) {
-      setState(
-        () {
-          options.weightUnitsPreference =
-              WeightUnitsPreference.values[weightUnitsPreference];
-        },
-      );
+    int? weightUnitsPref = prefs.getInt("weight_units_preference");
+    if (weightUnitsPref != null) {
+      setState(() {
+        options.weightUnitsPref = WeightUnitsPref.values[weightUnitsPref];
+      });
     } else {
-      print("weightUnitsPreference is null");
+      print("WeightUnitsPref is null");
     }
 
     int? weight = prefs.getInt("weight");
     if (weight != null) {
-      setState(
-        () {
-          options.weight = Weight.values[weight];
-        },
-      );
+      setState(() {
+        options.weight = weight;
+      });
     } else {
       print("weight is null");
     }
 
     int? activityLevel = prefs.getInt("activity_level");
     if (activityLevel != null) {
-      setState(
-        () {
-          options.activityLevel = ActivityLevel.values[activityLevel];
-        },
-      );
+      setState(() {
+        options.activityLevel = ActivityLevel.values[activityLevel];
+      });
     } else {
       print("activityLevel is null");
     }
 
     int? climate = prefs.getInt("climate");
     if (climate != null) {
-      setState(
-        () {
-          options.climate = Climate.values[climate];
-        },
-      );
+      setState(() {
+        options.climate = Climate.values[climate];
+      });
     } else {
       print("climate is null");
     }
@@ -153,8 +145,22 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void setOptions(QOptions newOptions) {
+  Future<void> saveSharedPrefs() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    prefs.setInt("questionnaire_page", options.currentPage.index);
+    prefs.setInt("sex", options.sex.index);
+    prefs.setBool("health_complications", options.healthComplications);
+    prefs.setInt("weight_units_preference", options.weightUnitsPref.index);
+    prefs.setInt("weight", options.weight);
+    prefs.setInt("activity_level", options.activityLevel.index);
+    prefs.setInt("climate", options.climate.index);
+    print("prefs saved");
+  }
+
+  void setOptions(GlobalData newOptions) {
     // save all the settings
+    saveSharedPrefs();
 
     setState(() {
       options = newOptions;
@@ -193,7 +199,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     borderRadius: BorderRadius.circular(8),
                     child: LinearProgressIndicator(
                       minHeight: 8,
-                      value: options.currentPage.index / QPages.values.length,
+                      value: (options.currentPage.index + 1) /
+                          QPages.values.length,
                     ),
                   ),
                 ),
@@ -224,11 +231,12 @@ class _MyHomePageState extends State<MyHomePage> {
                                   ],
                                 ),
                               ),
+                              const SizedBox(height: 32),
                               // this is where the content goes
                               SizedBox(
                                 width: 326,
                                 height: 64,
-                                child: ElevatedButton(
+                                child: FilledButton(
                                   onPressed: () {
                                     options.currentPage = QPages.sex;
                                     setOptions(options);

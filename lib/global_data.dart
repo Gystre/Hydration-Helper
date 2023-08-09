@@ -2,26 +2,32 @@ import 'package:hydration_helper/q_pages.dart';
 
 enum Sex { unknown, male, female }
 
-// 0 pounds as default for now
-enum WeightUnitsPreference { unknown, pounds, kilograms }
+// how the user's weight number will be interpreted
+enum WeightUnitsPref { pounds, kilograms }
 
-enum Weight { unknown }
+// how the user's recWater number will be interpreted
+enum FluidUnitsPref { flOunces, mililiters }
 
 enum ActivityLevel { unknown, sedentary, moderatlyActive, veryActive }
 
 enum Climate { unknown, hot, warm, cold }
 
 // questionnaire options
-class QOptions {
+class GlobalData {
   Sex sex = Sex.unknown;
   bool healthComplications = false;
-  WeightUnitsPreference weightUnitsPreference = WeightUnitsPreference.unknown;
-  Weight weight = Weight.unknown;
+  WeightUnitsPref weightUnitsPref = WeightUnitsPref.pounds;
+  int weight = 0;
   ActivityLevel activityLevel = ActivityLevel.unknown;
   Climate climate = Climate.unknown;
   QPages currentPage = QPages.welcome;
 
+  FluidUnitsPref fluidUnitsPref = FluidUnitsPref.flOunces;
+
+  // recommended amount of water calculated via some math
+  int recWater = 0;
+
   bool initialized = false;
 
-  QOptions();
+  GlobalData();
 }
