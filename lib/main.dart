@@ -19,6 +19,11 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
+        textTheme: const TextTheme(
+          displaySmall: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
       home: const MyHomePage(title: "Hydration Helper"),
     );
