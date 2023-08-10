@@ -146,9 +146,6 @@ class _MyHomePageState extends State<MyHomePage> {
     } else {
       print("recWater is null");
     }
-
-    // settings initialized
-    setState(() => options.initialized = true);
   }
 
   Future<void> saveSharedPrefs() async {
@@ -175,14 +172,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    if (!options.initialized) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.only(left: 16, right: 16),

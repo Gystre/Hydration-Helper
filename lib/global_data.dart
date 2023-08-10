@@ -44,10 +44,7 @@ class GlobalData {
     currentPage = QPages.welcome;
     fluidUnitsPref = FluidUnitsPref.flOunces;
     recWater = 0;
-    initialized = true;
   }
-
-  bool initialized = false;
 
   GlobalData();
 }
