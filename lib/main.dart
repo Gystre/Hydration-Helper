@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hydration_helper/q_pages.dart';
 import 'package:hydration_helper/global_data.dart';
 import 'package:hydration_helper/question_builder.dart';
+import 'package:hydration_helper/water_tracker_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -65,6 +66,8 @@ class _MyHomePageState extends State<MyHomePage> {
       prefs.setInt("activity_level", ActivityLevel.unknown.index);
       prefs.setInt("climate", Climate.unknown.index);
       prefs.setInt("rec_water", 0);
+      prefs.setInt("drank_water", 0);
+      prefs.setString("last_opened", DateTime.now().toString());
       return;
     }
 
@@ -146,6 +149,31 @@ class _MyHomePageState extends State<MyHomePage> {
     } else {
       print("recWater is null");
     }
+
+    String? lastOpened = prefs.getString("last_opened");
+    print(lastOpened);
+    if (lastOpened != null) {
+      DateTime lastOpenedDateTime = DateTime.parse(lastOpened);
+      DateTime now = DateTime.now();
+
+      // different day, reset the drank water otherwise load the drank water
+      if (lastOpenedDateTime.day != now.day) {
+        print("different day, resetting drank water");
+        setState(() {
+          options.waterDrank = 0;
+        });
+        prefs.setInt("drank_water", 0);
+      } else {
+        int? drankWater = prefs.getInt("drank_water");
+        if (drankWater != null) {
+          setState(() {
+            options.waterDrank = drankWater;
+          });
+        } else {
+          print("drankWater is null");
+        }
+      }
+    }
   }
 
   Future<void> saveSharedPrefs() async {
@@ -159,6 +187,7 @@ class _MyHomePageState extends State<MyHomePage> {
     prefs.setInt("activity_level", options.activityLevel.index);
     prefs.setInt("climate", options.climate.index);
     prefs.setInt("rec_water", options.recWater);
+    prefs.setInt("drank_water", options.waterDrank);
   }
 
   void setOptions(GlobalData newOptions) {
@@ -172,6 +201,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // user finished the questionnaire, take them to the water tracker page
+    if (options.currentPage == QPages.waterTracker) {
+      return WaterTrackerPage(options: options, setOptions: setOptions);
+    }
+
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.only(left: 16, right: 16),
@@ -188,7 +222,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     borderRadius: BorderRadius.circular(8),
                     child: LinearProgressIndicator(
                       minHeight: 8,
-                      value: (options.currentPage.index + 1) /
+                      // 2 pages don't have questions
+                      value: (options.currentPage.index + 2) /
                           QPages.values.length,
                     ),
                   ),

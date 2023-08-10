@@ -6,5 +6,6 @@ enum QPages {
   weight,
   activityLevel,
   climate,
-  done // finished all the questions
+  done, // finished all the questions
+  waterTracker,
 }

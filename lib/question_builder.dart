@@ -458,24 +458,26 @@ class _QuestionBuilderState extends State<QuestionBuilder> {
             Center(
               child: Column(
                 children: [
-                  // TODO: was going to add a whole streak system with the water and push notifications but will have to abandon in interest of time
-                  // FilledButton(
-                  //   style: ButtonStyle(
-                  //     minimumSize: MaterialStateProperty.all<Size>(
-                  //       const Size(324.0, 50.0),
-                  //     ),
-                  //     textStyle: MaterialStateProperty.all<TextStyle>(
-                  //       const TextStyle(fontSize: 16),
-                  //     ),
-                  //   ),
-                  //   onPressed: () {
-                  //     // navigate to the water page
-                  //   },
-                  //   child: const Text("Continue"),
-                  // ),
-                  // const SizedBox(
-                  //   height: 8,
-                  // ),
+                  FilledButton(
+                    style: ButtonStyle(
+                      minimumSize: MaterialStateProperty.all<Size>(
+                        const Size(324.0, 50.0),
+                      ),
+                      textStyle: MaterialStateProperty.all<TextStyle>(
+                        const TextStyle(fontSize: 16),
+                      ),
+                    ),
+                    onPressed: () {
+                      // set the page to the water tracker app
+                      // the home page widget will handle detecting the page change and presenting a different page
+                      widget.options.currentPage = QPages.waterTracker;
+                      widget.setOptions(widget.options);
+                    },
+                    child: const Text("Continue"),
+                  ),
+                  const SizedBox(
+                    height: 8,
+                  ),
                   FilledButton(
                     style: ButtonStyle(
                       backgroundColor:

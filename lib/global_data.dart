@@ -34,6 +34,14 @@ class GlobalData {
     return mililitersRounded;
   }
 
+  // in fluid ounces default
+  int waterDrank = 0;
+  get waterDrankMl {
+    int mililiters = (waterDrank * 29.5735).round();
+    int mililitersRounded = (mililiters / 100).floor() * 100;
+    return mililitersRounded;
+  }
+
   void reset() {
     sex = Sex.unknown;
     healthComplications = false;
@@ -44,6 +52,7 @@ class GlobalData {
     currentPage = QPages.welcome;
     fluidUnitsPref = FluidUnitsPref.flOunces;
     recWater = 0;
+    waterDrank = 0;
   }
 
   GlobalData();
